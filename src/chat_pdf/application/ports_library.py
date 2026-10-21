@@ -1,0 +1,93 @@
+"""Port of the projects / categories / library persistence (one repository, three features)."""
+
+from typing import Any, Protocol
+from uuid import UUID
+
+from chat_pdf.domain.library import Category, LibraryDoc, Project
+from chat_pdf.domain.models import Chat, Document
+
+
+class LibraryRepository(Protocol):
+    async def create_project(
+        self, name: str, description: str | None, color: str | None, icon: str | None
+    ) -> UUID: ...
+
+    async def get_project(self, project_id: UUID) -> Project | None: ...
+
+    async def list_projects(self) -> list[Project]: ...
+
+    async def update_project(self, project_id: UUID, changes: dict[str, Any]) -> None: ...
+
+    async def delete_project(self, project_id: UUID) -> list[UUID]:
+        """Cascades chats and sources; returns the document ids whose files to remove."""
+        ...
+
+    async def project_chats(self, project_id: UUID) -> list[Chat]: ...
+
+    async def create_chat_in(self, collection_id: UUID, title: str = "") -> Chat: ...
+
+    async def collection_documents(self, collection_id: UUID) -> list[Document]: ...
+
+    async def add_document(
+        self,
+        document_id: UUID,
+        collection_id: UUID,
+        filename: str,
+        mime: str,
+        sha256: str,
+        profile_id: UUID,
+        kind: str,
+    ) -> None: ...
+
+    async def delete_document(self, collection_id: UUID, document_id: UUID) -> bool: ...
+
+    async def document_source(self, document_id: UUID) -> dict[str, Any] | None: ...
+
+    async def collection_of_chat(self, chat_id: UUID) -> tuple[UUID, str] | None: ...
+
+    async def adopt_chat(self, chat_id: UUID, old_collection: UUID, project_id: UUID) -> None: ...
+
+    async def list_categories(self) -> list[Category]: ...
+
+    async def get_category(self, category_id: UUID) -> Category | None: ...
+
+    async def category_by_name(self, name: str) -> Category | None: ...
+
+    async def create_category(self, name: str, color: str | None, origin: str = "user") -> UUID: ...
+
+    async def update_category(self, category_id: UUID, changes: dict[str, Any]) -> None: ...
+
+    async def delete_category(self, category_id: UUID) -> None: ...
+
+    async def assign(self, category_id: UUID, document_ids: list[UUID], origin: str) -> int: ...
+
+    async def unassign(self, category_id: UUID, document_ids: list[UUID]) -> int: ...
+
+    async def replace_auto_categories(
+        self, groups: list[tuple[str, list[UUID]]], reserved: set[str]
+    ) -> list[tuple[UUID, str, int]]: ...
+
+    async def library_documents(
+        self,
+        kind: str | None = None,
+        category_id: UUID | None = None,
+        project_id: UUID | None = None,
+        status: str | None = None,
+        ids: list[UUID] | None = None,
+        uncategorized: bool = False,
+        text: str | None = None,
+    ) -> list[LibraryDoc]: ...
+
+    async def refresh_vectors(self, ids: list[UUID] | None = None) -> list[UUID]: ...
+
+    async def vectors(self, ids: list[UUID]) -> dict[UUID, list[float]]: ...
+
+    async def compat_vectors(
+        self, ids: list[UUID]
+    ) -> dict[UUID, tuple[str, int, list[tuple[str, list[float]]]]]:
+        """Per document: (file hash, text-space chunk count, up to 40 spread (modality, vector))."""
+        ...
+
+    async def vector_state(self, ids: list[UUID]) -> dict[UUID, tuple[int | None, list[float]]]: ...
+
+    async def document_scores(self, ids: list[UUID], vector: list[float]) -> dict[UUID, float]: ...
