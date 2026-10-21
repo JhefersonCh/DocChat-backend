@@ -1,0 +1,12 @@
+{
+  "image": [
+    {"query": "un perro", "file": "calibration/dog.jpg", "match": true},
+    {"query": "un perro", "file": "calibration/cat.jpg", "match": false},
+    {"query": "una playa", "file": "calibration/beach.jpg", "match": true},
+    {"query": "una playa", "file": "calibration/street.jpg", "match": false}
+  ],
+  "audio": [
+    {"query": "plazo de entrega del pedido", "file": "calibration/entrega.wav", "match": true},
+    {"query": "plazo de entrega del pedido", "file": "calibration/clima.wav", "match": false}
+  ]
+}
