@@ -4,13 +4,16 @@ import uuid
 import psycopg
 import pytest
 
-ADMIN_URL = os.environ.get(
-    "TEST_ADMIN_DATABASE_URL", "postgresql://chatpdf:chatpdf@localhost:5433/postgres"
-)
+ADMIN_URL = os.environ.get("TEST_ADMIN_DATABASE_URL")
 
 
 @pytest.fixture
 def empty_db_url():
+    if not ADMIN_URL:
+        pytest.skip(
+            "TEST_ADMIN_DATABASE_URL is not set (admin URL of a throwaway Postgres, "
+            "e.g. postgresql://USER:PASS@localhost:5433/postgres)"
+        )
     name = f"chatpdf_test_{uuid.uuid4().hex[:8]}"
     try:
         admin = psycopg.connect(ADMIN_URL, autocommit=True)

@@ -39,9 +39,7 @@ from chat_pdf.crypto import Crypto
 from chat_pdf.domain.config import RagConfig
 from chat_pdf.domain.rules import UPLOAD_TYPES
 
-ADMIN_URL = os.environ.get(
-    "EVAL_ADMIN_DATABASE_URL", "postgresql://chatpdf:chatpdf@localhost:5433/postgres"
-)
+ADMIN_URL = os.environ.get("EVAL_ADMIN_DATABASE_URL")
 DEFAULT_QUESTIONS = Path(__file__).with_name("eval_questions.json")
 TOP = 10  # depth of the ranking used for MRR
 
@@ -165,6 +163,11 @@ def main() -> None:
     for name, kind in knobs.items():  # any numeric RagConfig knob, e.g. --chunk-size 1000
         parser.add_argument(f"--{name.replace('_', '-')}", type=kind)
     args = parser.parse_args()
+    if not ADMIN_URL:
+        parser.error(
+            "EVAL_ADMIN_DATABASE_URL is not set (admin URL of a throwaway Postgres, "
+            "e.g. postgresql://USER:PASS@localhost:5433/postgres)"
+        )
     overrides = {k: getattr(args, k) for k in knobs if getattr(args, k) is not None}
     rag = replace(RagConfig(), **overrides)
     questions = json.loads(args.questions.read_text())["questions"]
